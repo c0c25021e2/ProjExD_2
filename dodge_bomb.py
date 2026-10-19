@@ -93,6 +93,20 @@ def gameover(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5)
 
+
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    爆弾がこうかとんに向かうための移動方向を計算する
+    """
+    dx = dst.centerx - org.centerx
+    dy = dst.centery - org.centery
+    norm = (dx**2 + dy**2)**0.5
+    if norm < 300:
+        return current_xy
+    vx = dx / norm * (50**0.5)
+    vy = dy / norm * (50**0.5)
+    return vx, vy
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -139,6 +153,7 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
 
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
         avx = vx * bb_accs[min(tmr // 500, 9)]
         avy = vy * bb_accs[min(tmr // 500, 9)]
         bb_rct.move_ip(avx, avy)
