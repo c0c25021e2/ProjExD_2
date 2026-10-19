@@ -48,12 +48,19 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
     移動方向に対応するこうかとん画像の辞書を作成する
     """
-    kk_imgs = {}
-    for x in [-5, 0, 5]:
-        for y in [-5, 0, 5]:
-            kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), -x*9, 0.9)
-            kk_imgs[(x, y)] = kk_img
-    return kk_imgs
+    kk_img = pg.image.load("fig/3.png")
+    kk_dict = {
+        (0, 0): pg.transform.rotozoom(kk_img, 0, 0.9),
+        (+5, 0): pg.transform.rotozoom(kk_img, 180, 0.9),
+        (+5, -5): pg.transform.rotozoom(kk_img, -135, 0.9),
+        (0, -5): pg.transform.rotozoom(kk_img, -90, 0.9),
+        (-5, -5): pg.transform.rotozoom(kk_img, -45, 0.9),
+        (-5, 0): pg.transform.rotozoom(kk_img, 0, 0.9),
+        (-5, +5): pg.transform.rotozoom(kk_img, 45, 0.9),
+        (0, +5): pg.transform.rotozoom(kk_img, 90, 0.9),
+        (+5, +5): pg.transform.rotozoom(kk_img, 135, 0.9)
+    }
+    return kk_dict
 
 
 def gameover(screen: pg.Surface) -> None:
@@ -126,7 +133,7 @@ def main():
             if key_lst[k]:
                 sum_mv[0] += tpl[0]
                 sum_mv[1] += tpl[1]
-                
+        kk_img = kk_imgs[tuple(sum_mv)]
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
