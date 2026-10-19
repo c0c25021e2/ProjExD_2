@@ -29,6 +29,33 @@ def check_bound(rect: pg.Rect) -> tuple[bool,bool]:
     return yoko, tate
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    爆弾の画像と加速度のリストを作成する
+    戻り値：爆弾画像のリスト、加速度のリスト
+    """
+    bb_imgs = []
+    for r in range(1, 11):
+        bb_img = pg.Surface((20*r, 20*r))
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+        bb_img.set_colorkey((0, 0, 0))
+        bb_imgs.append(bb_img)
+    bb_accs = [a for a in range(1, 11)]
+    return bb_imgs, bb_accs
+
+
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """
+    移動方向に対応するこうかとん画像の辞書を作成する
+    """
+    kk_imgs = {}
+    for x in [-5, 0, 5]:
+        for y in [-5, 0, 5]:
+            kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), -x*9, 0.9)
+            kk_imgs[(x, y)] = kk_img
+    return kk_imgs
+
+
 def gameover(screen: pg.Surface) -> None:
     """
     こうかとんに爆弾が着弾した際に、画面をブラックアウトし、
@@ -63,12 +90,12 @@ def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_imgs = get_kk_imgs()
+    kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-    bb_img = pg.Surface((20, 20))
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
-    bb_img.set_colorkey((0, 0, 0))
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0, WIDTH)
     bb_rct.centery = random.randint(0, HEIGHT)
@@ -99,12 +126,17 @@ def main():
             if key_lst[k]:
                 sum_mv[0] += tpl[0]
                 sum_mv[1] += tpl[1]
+                
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
 
-        bb_rct.move_ip(vx, vy)
+        avx = vx * bb_accs[min(tmr // 500, 9)]
+        avy = vy * bb_accs[min(tmr // 500, 9)]
+        bb_rct.move_ip(avx, avy)
+        bb_img = bb_imgs[min(tmr // 500, 9)]
+        bb_rct.size = bb_img.get_rect().size
         yoko, tate = check_bound(bb_rct)
         if not yoko:  # yoko == False
             vx *= -1
